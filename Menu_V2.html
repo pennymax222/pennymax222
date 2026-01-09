@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>亞米亞米 Yami Yami 線上點餐 (升級版)</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #fcf8f5; }
+        .brand-color { color: #63191F; }
+        .bg-brand { background-color: #63191F; }
+        .category-active { background-color: #63191F; color: white; border-left: 4px solid #3f0d12; }
+        select { -webkit-appearance: none; } /* Custom select style fix */
+    </style>
+</head>
+<body>
+
+<div id="app" class="flex flex-col h-screen overflow-hidden">
+    <header class="bg-brand text-white p-3 md:p-4 shadow-md flex justify-between items-center z-10 shrink-0">
+        <div>
+            <h1 class="text-xl md:text-2xl font-bold tracking-wider">Yami Yami 亞米亞米</h1>
+            <p class="text-xs md:text-sm opacity-80">義大利麵 · 拿坡里披薩 · 專門店</p>
+        </div>
+        <div class="text-xs md:text-sm hidden md:block text-right">
+            <p>📍 台南市東區</p>
+            <p>📞 預約專線</p>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <nav class="w-24 md:w-1/6 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0 pb-20">
+            <ul>
+                <li v-for="cat in categories" :key="cat.id" 
+                    @click="scrollToCategory(cat.id)"
+                    :class="{'category-active': activeCategory === cat.id}"
+                    class="p-3 md:p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 transition duration-200 text-center md:text-left">
+                    <div class="font-bold text-sm md:text-base">{{ cat.name }}</div>
+                    <div class="text-[10px] md:text-xs opacity-60 mt-1">{{ cat.eng }}</div>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="flex-1 p-4 overflow-y-auto scroll-smooth bg-gray-50" id="menu-container" @scroll="onScroll">
+            <div class="max-w-4xl mx-auto pb-32 md:pb-10">
+                <div v-for="cat in categories" :key="cat.id" :id="cat.id" class="mb-10 scroll-mt-4">
+                    <h2 class="text-xl md:text-2xl font-bold mb-4 brand-color border-b-2 border-red-800 pb-2 sticky top-0 bg-gray-50 z-10 pt-2">
+                        {{ cat.name }} <span class="ml-2 text-sm font-normal text-gray-500">{{ cat.eng }}</span>
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+                        <div v-for="item in menuItems[cat.id]" :key="item.code" 
+                             @click="openItemModal(item)"
+                             class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer border border-transparent hover:border-red-800 relative group flex flex-col justify-between h-full">
+                            
+                            <div>
+                                <div class="flex justify-between items-start mb-1">
+                                    <h3 class="font-bold text-gray-800 text-lg leading-tight">
+                                        <span class="text-xs bg-gray-100 text-gray-500 px-1 rounded mr-1 align-middle">{{ item.code }}</span>
+                                        {{ item.name }}
+                                    </h3>
+                                    <span class="font-bold text-red-700 whitespace-nowrap ml-2">${{ item.price }}</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-2">{{ item.desc }}</p>
+                            </div>
+                            
+                            <div class="flex justify-between items-end mt-3">
+                                <div v-if="item.canCombo" class="text-[10px] text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200">
+                                    可搭套餐
+                                </div>
+                                <div v-else></div>
+                                <button class="bg-red-50 text-brand-color text-xs px-3 py-1 rounded-full font-bold hover:bg-red-100 transition">
+                                    ＋ 加入
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="hidden md:flex w-80 lg:w-96 bg-white border-l border-gray-200 flex-col shadow-xl z-20 flex-shrink-0">
+            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                <h2 class="text-lg font-bold brand-color flex items-center">
+                    🛒 點餐明細 <span class="ml-2 bg-red-600 text-white text-xs px-2 rounded-full">{{ cart.length }}</span>
+                </h2>
+                <button @click="clearCart" class="text-xs text-gray-400 hover:text-red-500 underline" v-if="cart.length > 0">清空</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                <div v-if="cart.length === 0" class="text-center text-gray-400 mt-10">
+                    <p>尚未選擇餐點</p>
+                </div>
+                <div v-else v-for="(item, index) in cart" :key="index" class="bg-white border border-gray-100 rounded p-3 shadow-sm relative">
+                    <button @click="removeFromCart(index)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✕</button>
+                    <div class="font-bold text-gray-800 pr-4">{{ item.name }} <span class="text-sm font-normal text-gray-500">(${{item.basePrice}})</span></div>
+                    
+                    <div v-if="item.comboType !== 'none'" class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 space-y-1">
+                        <div class="font-bold text-red-700">
+                            {{ getComboName(item.comboType) }} (+${{ item.comboFee }})
+                        </div>
+                        <div v-if="item.comboDetails.drink">
+                            🥤 {{ item.comboDetails.drink.name }} 
+                            <span class="text-red-500" v-if="calcDrinkSurplus(item.comboDetails.drink) > 0">
+                                (補 +{{ calcDrinkSurplus(item.comboDetails.drink) }})
+                            </span>
+                        </div>
+                        <div v-if="item.comboDetails.dessert">
+                            🍰 {{ item.comboDetails.dessert.name }}
+                            <span class="text-red-500" v-if="calcDessertSurplus(item.comboDetails.dessert) > 0">
+                                (補 +{{ calcDessertSurplus(item.comboDetails.dessert) }})
+                            </span>
+                        </div>
+                        <div v-if="item.comboDetails.sides.length > 0">
+                            🍟 {{ item.comboDetails.sides.join('、') }}
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-gray-400 mt-1" v-if="item.note">備註: {{ item.note }}</div>
+                    <div class="text-right font-bold text-brand-color mt-1">${{ item.totalPrice }}</div>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t">
+                <div class="flex justify-between text-xl font-bold mb-4">
+                    <span>總計</span>
+                    <span class="brand-color">${{ cartTotal }}</span>
+                </div>
+                <button @click="checkout" class="w-full bg-brand text-white py-3 rounded-lg font-bold hover:bg-red-900 transition">確認送出訂單</button>
+            </div>
+        </aside>
+    </div>
+
+    <div v-if="cart.length > 0" class="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.1)] p-3 px-4 flex justify-between items-center z-30 pb-safe">
+        <div @click="showMobileCart = true" class="cursor-pointer">
+            <div class="text-xs text-gray-500">購物車 <span class="bg-red-600 text-white px-1.5 rounded-full text-[10px]">{{ cart.length }}</span></div>
+            <div class="text-xl font-bold brand-color">${{ cartTotal }}</div>
+        </div>
+        <button @click="checkout" class="bg-brand text-white px-8 py-2.5 rounded-lg font-bold">送出</button>
+    </div>
+
+    <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-end md:items-center p-0 md:p-4" @click.self="closeModal">
+        <div class="bg-white rounded-t-2xl md:rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[95vh]">
+            <div class="bg-brand text-white p-4 relative shrink-0">
+                <h3 class="text-xl font-bold pr-8">{{ selectedItem.name }}</h3>
+                <p class="text-xs opacity-80 mt-1">{{ selectedItem.desc }}</p>
+                <button @click="closeModal" class="absolute top-4 right-4 text-white bg-white bg-opacity-20 rounded-full w-8 h-8">✕</button>
+            </div>
+            
+            <div class="p-4 md:p-6 overflow-y-auto">
+                <div v-if="selectedItem.canCombo" class="mb-6">
+                    <h4 class="font-bold text-gray-800 mb-3">選擇升級套餐</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'none'}">
+                            <input type="radio" v-model="form.combo" value="none" class="hidden">
+                            <div class="font-bold text-center">單點</div>
+                            <div class="text-xs text-gray-500 text-center mt-1">${{ selectedItem.price }}</div>
+                        </label>
+                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'A'}">
+                            <input type="radio" v-model="form.combo" value="A" class="hidden">
+                            <div class="font-bold text-center">A餐 <span class="text-red-600 text-sm">+$98</span></div>
+                            <div class="text-[10px] text-gray-500 text-center mt-1">小品x1 + $60飲品</div>
+                        </label>
+                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'B'}">
+                            <input type="radio" v-model="form.combo" value="B" class="hidden">
+                            <div class="font-bold text-center">B餐 <span class="text-red-600 text-sm">+$158</span></div>
+                            <div class="text-[10px] text-gray-500 text-center mt-1">$128甜點 + $60飲品</div>
+                        </label>
+                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'C'}">
+                            <input type="radio" v-model="form.combo" value="C" class="hidden">
+                            <div class="font-bold text-center">C餐 <span class="text-red-600 text-sm">+$158</span></div>
+                            <div class="text-[10px] text-gray-500 text-center mt-1">小品x2 + $60飲品</div>
+                        </label>
+                    </div>
+                </div>
+
+                <div v-if="form.combo !== 'none'" class="bg-gray-50 p-4 rounded-lg mb-4 space-y-4 border border-gray-200">
+                    
+                    <div v-if="form.combo === 'A' || form.combo === 'C'">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">
+                            選擇小品 1 <span class="text-red-500">*</span>
+                        </label>
+                        <select v-model="form.side1" class="w-full border border-gray-300 rounded p-2 bg-white">
+                            <option value="" disabled>請選擇小品</option>
+                            <option v-for="side in sideOptions" :value="side">{{ side }}</option>
+                        </select>
+                    </div>
+
+                    <div v-if="form.combo === 'C'">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">
+                            選擇小品 2 <span class="text-red-500">*</span>
+                        </label>
+                        <select v-model="form.side2" class="w-full border border-gray-300 rounded p-2 bg-white">
+                            <option value="" disabled>請選擇小品</option>
+                            <option v-for="side in sideOptions" :value="side">{{ side }}</option>
+                        </select>
+                    </div>
+
+                    <div v-if="form.combo === 'B'">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">
+                            選擇甜點 (折抵$128) <span class="text-red-500">*</span>
+                        </label>
+                        <select v-model="form.selectedDessertCode" class="w-full border border-gray-300 rounded p-2 bg-white">
+                            <option value="" disabled>請選擇甜點</option>
+                            <option v-for="d in menuItems.dessert" :value="d.code">
+                                {{ d.name }} 
+                                <span v-if="calcDessertSurplus(d) > 0">(+${{ calcDessertSurplus(d) }})</span>
+                                <span v-else>(不加價)</span>
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">
+                            選擇飲料 (折抵$60) <span class="text-red-500">*</span>
+                        </label>
+                        <select v-model="form.selectedDrinkCode" class="w-full border border-gray-300 rounded p-2 bg-white">
+                            <option value="" disabled>請選擇飲料</option>
+                            <optgroup label="飲料/氣泡飲">
+                                <option v-for="d in menuItems.drink" :value="d.code">
+                                    {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
+                                </option>
+                            </optgroup>
+                            <optgroup label="咖啡">
+                                <option v-for="d in menuItems.coffee" :value="d.code">
+                                    {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
+                                </option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">餐點備註</label>
+                    <input type="text" v-model="form.note" class="w-full border border-gray-300 rounded p-2" placeholder="如：飲料少冰、加辣">
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0 pb-safe">
+                <div>
+                    <div class="text-xs text-gray-500">總金額</div>
+                    <div class="text-2xl font-bold brand-color">${{ currentModalTotal }}</div>
+                </div>
+                <div class="flex space-x-3">
+                    <button @click="closeModal" class="px-5 py-3 text-gray-600 rounded-lg bg-white border">取消</button>
+                    <button @click="addToCart" :disabled="!isFormValid" 
+                            class="px-8 py-3 bg-brand text-white font-bold rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed">
+                        加入訂單
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const { createApp, ref, reactive, computed } = Vue;
+
+    createApp({
+        setup() {
+            const activeCategory = ref('appetizer');
+            const showModal = ref(false);
+            const showMobileCart = ref(false);
+            const selectedItem = ref({});
+            const cart = ref([]);
+            
+            // 小品選項
+            const sideOptions = ['脆薯', '焗烤肉醬馬鈴薯', '沙拉', '濃湯麵包'];
+
+            // 表單資料
+            const form = reactive({
+                combo: 'none', // none, A, B, C
+                side1: '',
+                side2: '',
+                selectedDrinkCode: '',
+                selectedDessertCode: '',
+                note: ''
+            });
+
+            const categories = [
+                { id: 'appetizer', name: '開胃菜', eng: 'Appetizer' },
+                { id: 'salad', name: '沙拉', eng: 'Salad' },
+                { id: 'main', name: '排餐主菜', eng: 'Main Course' },
+                { id: 'pasta', name: '義大利麵', eng: 'Pasta' },
+                { id: 'risotto', name: '燉飯/焗烤', eng: 'Risotto & Casserole' },
+                { id: 'pizza', name: '拿坡里披薩', eng: 'Pizza Napoletana' },
+                { id: 'coffee', name: '咖啡', eng: 'Coffee' },
+                { id: 'drink', name: '飲料', eng: 'Beverage' },
+                { id: 'alcohol', name: '酒類', eng: 'Beer & Wine' },
+                { id: 'dessert', name: '甜點', eng: 'Dessert' }
+            ];
+
+            // 完整菜單資料 (含價格)
+            const menuItems = {
+                appetizer: [
+                    {"code": "A1", "name": "巴薩米可醋炒綜合野菇", "price": 148, "desc": "蘑菇、香菇、杏鮑菇、柳松菇", "canCombo": false},
+                    {"code": "A2", "name": "櫛瓜烘蛋配炸西西里綠橄欖鑲豬肉", "price": 158, "desc": "烘蛋、辣肉末、綠橄欖、義大利豬肉香腸", "canCombo": false},
+                    {"code": "A3", "name": "熱焗烤千層時蔬", "price": 158, "desc": "茄汁肉醬、帕瑪森起司、當季時蔬", "canCombo": false},
+                    {"code": "A4", "name": "西班牙奶油大蒜蝦", "price": 268, "desc": "草蝦、大蒜、紅椒粉、麵包", "canCombo": false},
+                    {"code": "A5", "name": "招牌香草辣雞翅 (6支)", "price": 188, "desc": "二節翅、特製醬料", "canCombo": false},
+                    {"code": "A6", "name": "炸脆薯", "price": 98, "desc": "脆薯", "canCombo": false},
+                    {"code": "A7", "name": "杜蘭小麥酥炸綜合海鮮盤", "price": 248, "desc": "蝦子、小卷、丁香魚", "canCombo": false}
+                ],
+                salad: [
+                    {"code": "D1", "name": "板煎香脆松阪豬佐紅酒醋溫沙拉", "price": 238, "desc": "綜合生菜、松阪豬、松子、巴薩米可醋", "canCombo": true},
+                    {"code": "D2", "name": "DOC水牛奶起司番茄沙拉", "price": 238, "desc": "小牛莫札瑞拉、番茄、芝麻葉青醬", "canCombo": true},
+                    {"code": "D3", "name": "田園蔬菜與溫泉蛋沙拉", "price": 198, "desc": "溫泉蛋、羽衣甘藍、蜂蜜芥末籽醬", "canCombo": true},
+                    {"code": "D4", "name": "火烙香嫩雞胸經典凱薩沙拉", "price": 198, "desc": "低溫雞胸、起司、凱薩醬", "canCombo": true}
+                ],
+                main: [
+                    {"code": "E1", "name": "人氣香草奶油風味烤半雞", "price": 458, "desc": "半雞、脆薯、蔬菜、蒜香雞汁", "canCombo": true},
+                    {"code": "E2", "name": "酥脆德國豬腳佐義式醋漬蔬菜", "price": 528, "desc": "豬腳、薯條、蔬菜、蜂蜜芥末", "canCombo": true},
+                    {"code": "E3", "name": "10盎司火烤紐約客牛排", "price": 688, "desc": "牛排、脆薯、炒蔬菜、松露紅酒醬", "canCombo": true}
+                ],
+                pasta: [
+                    {"code": "M1", "name": "煙花女風味鮮甜小卷義大利麵", "price": 298, "desc": "橄欖油清炒", "canCombo": true},
+                    {"code": "M2", "name": "清炒白酒蒜香蛤蠣義大利麵", "price": 268, "desc": "蒜香、白酒", "canCombo": true},
+                    {"code": "M3", "name": "蒜香辣味雞肉蘑菇義大利麵", "price": 268, "desc": "蒜香、辣椒", "canCombo": true},
+                    {"code": "M4", "name": "自製豬肉蘆筍鯷魚筆管麵", "price": 268, "desc": "蘆筍、鯷魚", "canCombo": true},
+                    {"code": "M5", "name": "乾燒鮮蝦佐明太子義大利麵", "price": 278, "desc": "鮮蝦、明太子", "canCombo": true},
+                    {"code": "M6", "name": "秋味奶油菌菇佐厚切牛排義大利麵", "price": 428, "desc": "自營農場白醬", "canCombo": true},
+                    {"code": "M7", "name": "培根溫泉蛋奶油義大利麵", "price": 288, "desc": "Carbonara", "canCombo": true},
+                    {"code": "M8", "name": "費城重起司鮮蝦奶油雞肉扁舌麵", "price": 288, "desc": "微辣起司醬", "canCombo": true},
+                    {"code": "M9", "name": "巴薩醋松阪豬奶油義大利麵", "price": 298, "desc": "巴薩米可醋", "canCombo": true},
+                    {"code": "M10", "name": "和風明太子奶油海鮮義大利麵", "price": 318, "desc": "明太子奶油", "canCombo": true},
+                    {"code": "M11", "name": "卡拉布里亞辣肉末與芝麻葉配筆管麵", "price": 278, "desc": "Nduja Sauce", "canCombo": true},
+                    {"code": "M12", "name": "墨西哥辣椒鮮蝦茄汁義大利麵", "price": 278, "desc": "經典番茄紅醬", "canCombo": true},
+                    {"code": "M13", "name": "西西里茄汁綜合海鮮義大利麵", "price": 308, "desc": "綜合海鮮", "canCombo": true},
+                    {"code": "M14", "name": "義式紅酒慢燉牛肉配筆管麵", "price": 318, "desc": "紅酒燉牛肉", "canCombo": true},
+                    {"code": "M15", "name": "帕瑪茄汁雞肉蘑菇義大利麵", "price": 268, "desc": "茄汁雞肉", "canCombo": true},
+                    {"code": "M16", "name": "藍紋起司炸小卷南瓜筆管麵", "price": 378, "desc": "濃郁老饕香蒜", "canCombo": true},
+                    {"code": "M17", "name": "西西里黑手黨墨魚麵", "price": 288, "desc": "墨魚汁", "canCombo": true},
+                    {"code": "M18", "name": "青醬培根與自製香腸溫泉蛋義大利麵", "price": 298, "desc": "松子青醬", "canCombo": true},
+                    {"code": "M19", "name": "熱那亞青醬綜合海鮮麵", "price": 308, "desc": "綜合海鮮", "canCombo": true},
+                    {"code": "M20", "name": "普羅旺斯香草嫩雞佐蘿勒醬義大利麵", "price": 308, "desc": "香草嫩雞", "canCombo": true},
+                    {"code": "M21", "name": "青醬蛤蠣扁舌麵", "price": 288, "desc": "蛤蠣", "canCombo": true},
+                    {"code": "M22", "name": "牛肝菌奶油蔬菜義大利麵 (蛋奶素)", "price": 268, "desc": "牛肝菌", "canCombo": true},
+                    {"code": "M23", "name": "田園南瓜番茄鮮蔬義大利麵 (全素)", "price": 258, "desc": "南瓜醬", "canCombo": true},
+                    {"code": "M24", "name": "清炒辣味蔬菜義大利麵 (全素)", "price": 258, "desc": "清炒辣味", "canCombo": true}
+                ],
+                risotto: [
+                    {"code": "R1", "name": "炭烤松阪豬牛肝菌起司燉飯", "price": 338, "desc": "松阪豬、牛肝菌", "canCombo": true},
+                    {"code": "R2", "name": "蒜香南瓜鯷魚海鮮燉飯", "price": 378, "desc": "南瓜、鯷魚、海鮮", "canCombo": true},
+                    {"code": "R3", "name": "威尼斯鮮甜小卷墨魚燉飯", "price": 378, "desc": "墨魚汁、小卷", "canCombo": true},
+                    {"code": "R4", "name": "香煎烤雞與黑松露燉飯", "price": 378, "desc": "烤雞、黑松露", "canCombo": true},
+                    {"code": "R5", "name": "帕瑪鱸魚菲力茄汁燉飯", "price": 338, "desc": "鱸魚、茄汁", "canCombo": true},
+                    {"code": "C1", "name": "焗烤培根筆尖麵/燉飯", "price": 288, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true},
+                    {"code": "C2", "name": "焗烤檸檬雞筆尖麵/燉飯", "price": 298, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true},
+                    {"code": "C3", "name": "焗烤海鮮筆尖麵/燉飯", "price": 328, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true},
+                    {"code": "C4", "name": "焗烤綜合鮮蔬筆尖麵/燉飯", "price": 288, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true}
+                ],
+                pizza: [
+                    {"code": "P1", "name": "瑪格莉特", "price": 248, "desc": "茄汁、馬自拉起司、羅勒", "canCombo": true},
+                    {"code": "P2", "name": "經典瑪莉 (D.O.C)", "price": 308, "desc": "空運水牛奶起司、小番茄", "canCombo": true},
+                    {"code": "P3", "name": "帕瑪火腿配芝麻葉", "price": 308, "desc": "帕瑪火腿、芝麻葉", "canCombo": true},
+                    {"code": "P4", "name": "漁夫風綜合海鮮披薩", "price": 298, "desc": "蝦子、小卷、蛤蠣、鯷魚", "canCombo": true},
+                    {"code": "P5", "name": "法蘭克福", "price": 278, "desc": "德國香腸片、炸薯條", "canCombo": true},
+                    {"code": "P6", "name": "三種豬肉", "price": 298, "desc": "厚切培根、豬肉香腸、西班牙辣腸", "canCombo": true},
+                    {"code": "P7", "name": "自製義大利香腸與爽口辣椒披薩", "price": 278, "desc": "墨西哥辣椒、半熟蛋", "canCombo": true},
+                    {"code": "P8", "name": "季節鮮蔬披薩", "price": 258, "desc": "櫛瓜、蘑菇、青花菜", "canCombo": true},
+                    {"code": "P9", "name": "青醬野菇與檸檬雞", "price": 288, "desc": "羅勒青醬、檸檬雞", "canCombo": true},
+                    {"code": "P10", "name": "黑松露與綜合野菇", "price": 288, "desc": "黑松露醬、綜合野菇", "canCombo": true},
+                    {"code": "P11", "name": "黑色搖滾", "price": 288, "desc": "鹹豬肉、芝麻葉、黑橄欖", "canCombo": true},
+                    {"code": "P12", "name": "四種起司", "price": 298, "desc": "Ricotta、馬自拉、藍紋、帕瑪森", "canCombo": true},
+                    {"code": "P13", "name": "卡拉布里亞辣肉末", "price": 288, "desc": "Nduja辣肉末", "canCombo": true},
+                    {"code": "P14", "name": "阿瑪爾菲", "price": 288, "desc": "櫛瓜、白蝦仁、烏魚子", "canCombo": true},
+                    {"code": "P15", "name": "白色戀人", "price": 308, "desc": "帕瑪火腿、芝麻葉、紅酒陳醋", "canCombo": true}
+                ],
+                coffee: [
+                    {"code": "E1", "name": "美式義大利", "price": 60, "desc": "I/H", "canCombo": false},
+                    {"code": "E2", "name": "咖啡拿鐵", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "E3", "name": "棉花糖巧克力摩卡", "price": 100, "desc": "I/H", "canCombo": false},
+                    {"code": "E4", "name": "西西里檸檬氣泡咖啡", "price": 100, "desc": "I", "canCombo": false},
+                    {"code": "E5", "name": "漂浮冰淇淋咖啡", "price": 100, "desc": "I", "canCombo": false},
+                    {"code": "E6", "name": "榛果棉花糖拿鐵", "price": 110, "desc": "I/H", "canCombo": false},
+                    {"code": "E7", "name": "玫瑰風味拿鐵", "price": 110, "desc": "I/H", "canCombo": false},
+                    {"code": "E8", "name": "沖繩黑糖咖啡拿鐵", "price": 110, "desc": "I/H", "canCombo": false},
+                    {"code": "E9", "name": "治宇抹茶咖啡拿鐵", "price": 120, "desc": "I/H", "canCombo": false},
+                    {"code": "E10", "name": "濃縮咖啡", "price": 60, "desc": "H", "canCombo": false}
+                ],
+                drink: [
+                    {"code": "S1", "name": "單杯氣泡水", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "S2", "name": "檸檬氣泡飲", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "S3", "name": "蘋果氣泡飲", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "S4", "name": "蜜檸百香果氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S5", "name": "美荔桃水果氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S6", "name": "自製野梅果粒氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S7", "name": "金桔紫蘇梅香氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S8", "name": "可口可樂", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "B1", "name": "農林仙女紅茶", "price": 60, "desc": "I/H", "canCombo": false},
+                    {"code": "B2", "name": "蜂蜜柚子茶", "price": 60, "desc": "I/H", "canCombo": false},
+                    {"code": "B3", "name": "仙女紅茶拿鐵", "price": 80, "desc": "I/H", "canCombo": false},
+                    {"code": "B4", "name": "手摘薄荷伯爵鮮奶茶", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "B5", "name": "京都抹茶那堤", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "B6", "name": "四季水果茶", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "B7", "name": "漂浮義式冰淇淋紅茶", "price": 100, "desc": "I/H", "canCombo": false},
+                    {"code": "B8", "name": "棉花糖可可鮮牛奶", "price": 100, "desc": "I/H", "canCombo": false},
+                    {"code": "B9", "name": "香濃熱鮮桔子茶", "price": 90, "desc": "H", "canCombo": false}
+                ],
+                alcohol: [
+                    {"code": "Beer1", "name": "Civale Monflowers", "price": 260, "desc": "義大利鮮花釀啤酒", "canCombo": false},
+                    {"code": "Beer2", "name": "Civale Belle Gose", "price": 260, "desc": "義大利美麗之鹽啤酒", "canCombo": false},
+                    {"code": "Beer3", "name": "Civale Punto di fuga", "price": 260, "desc": "義大利蜜霧啤酒", "canCombo": false},
+                    {"code": "Beer4", "name": "Baladin Nazionale", "price": 230, "desc": "原味淡色啤酒", "canCombo": false},
+                    {"code": "Beer5", "name": "Baladin Isaac", "price": 230, "desc": "香草淡色啤酒", "canCombo": false},
+                    {"code": "Beer6", "name": "Baladin Nora", "price": 230, "desc": "東方淡色啤酒", "canCombo": false},
+                    {"code": "Beer7", "name": "Baladin Super", "price": 230, "desc": "果香濃色啤酒", "canCombo": false},
+                    {"code": "Beer8", "name": "Moretti", "price": 120, "desc": "莫雷帝啤酒", "canCombo": false},
+                    {"code": "Wine1", "name": "Pinot Grigio", "price": 900, "desc": "Friuli 白酒", "canCombo": false},
+                    {"code": "Wine2", "name": "Sauvignon", "price": 1080, "desc": "Alto Adige 白酒", "canCombo": false},
+                    {"code": "Wine3", "name": "Lugana", "price": 950, "desc": "Lombardia 白酒", "canCombo": false},
+                    {"code": "Wine4", "name": "Grechetto", "price": 800, "desc": "Umbria 白酒", "canCombo": false},
+                    {"code": "Wine5", "name": "Primitivo", "price": 780, "desc": "Puglia 紅酒", "canCombo": false},
+                    {"code": "Wine6", "name": "Barolo", "price": 2200, "desc": "Piemonte 紅酒", "canCombo": false},
+                    {"code": "Wine7", "name": "Barbera", "price": 880, "desc": "Piemonte 紅酒", "canCombo": false},
+                    {"code": "Wine8", "name": "Pinot Nero", "price": 600, "desc": "Veneto 紅酒", "canCombo": false},
+                    {"code": "Wine9", "name": "Valpolicella", "price": 890, "desc": "Veneto 紅酒", "canCombo": false},
+                    {"code": "Wine10", "name": "Chianti Classico", "price": 890, "desc": "Toscana 紅酒", "canCombo": false}
+                ],
+                dessert: [
+                    {"code": "T1", "name": "成熟提拉米蘇", "price": 158, "desc": "", "canCombo": false},
+                    {"code": "T2", "name": "布朗尼蛋糕佐香草冰淇淋", "price": 128, "desc": "", "canCombo": false},
+                    {"code": "T3", "name": "手工焦糖烤布蕾", "price": 128, "desc": "", "canCombo": false}
+                ]
+            };
+
+            // Helpers
+            const getDrinkObj = (code) => {
+                const allDrinks = [...menuItems.drink, ...menuItems.coffee];
+                return allDrinks.find(d => d.code === code);
+            };
+
+            const getDessertObj = (code) => {
+                return menuItems.dessert.find(d => d.code === code);
+            };
+
+            const calcDrinkSurplus = (drink) => {
+                // 飲品折抵 60，回傳需補差價 (不可小於0)
+                return Math.max(0, drink.price - 60);
+            };
+
+            const calcDessertSurplus = (dessert) => {
+                // 甜點折抵 128，回傳需補差價
+                return Math.max(0, dessert.price - 128);
+            };
+
+            const scrollToCategory = (id) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                    activeCategory.value = id;
+                }
+            };
+
+            const onScroll = (e) => {
+                const container = e.target;
+                categories.forEach(cat => {
+                    const el = document.getElementById(cat.id);
+                    if (el && container.scrollTop >= el.offsetTop - 150) {
+                        activeCategory.value = cat.id;
+                    }
+                });
+            };
+
+            const openItemModal = (item) => {
+                selectedItem.value = item;
+                // 重置表單
+                form.combo = 'none';
+                form.side1 = '';
+                form.side2 = '';
+                form.selectedDrinkCode = '';
+                form.selectedDessertCode = '';
+                form.note = '';
+                showModal.value = true;
+            };
+
+            const closeModal = () => {
+                showModal.value = false;
+            };
+
+            // 計算總價
+            const currentModalTotal = computed(() => {
+                let total = selectedItem.value.price || 0;
+
+                if (form.combo === 'A') {
+                    total += 98;
+                    if (form.selectedDrinkCode) {
+                        total += calcDrinkSurplus(getDrinkObj(form.selectedDrinkCode));
+                    }
+                } else if (form.combo === 'B') {
+                    total += 158;
+                    if (form.selectedDrinkCode) {
+                        total += calcDrinkSurplus(getDrinkObj(form.selectedDrinkCode));
+                    }
+                    if (form.selectedDessertCode) {
+                        total += calcDessertSurplus(getDessertObj(form.selectedDessertCode));
+                    }
+                } else if (form.combo === 'C') {
+                    total += 158;
+                    if (form.selectedDrinkCode) {
+                        total += calcDrinkSurplus(getDrinkObj(form.selectedDrinkCode));
+                    }
+                }
+                return total;
+            });
+
+            // 檢查是否選完必要選項
+            const isFormValid = computed(() => {
+                if (form.combo === 'none') return true;
+                if (form.combo === 'A') {
+                    return form.side1 && form.selectedDrinkCode;
+                }
+                if (form.combo === 'B') {
+                    return form.selectedDessertCode && form.selectedDrinkCode;
+                }
+                if (form.combo === 'C') {
+                    return form.side1 && form.side2 && form.selectedDrinkCode;
+                }
+                return false;
+            });
+
+            const addToCart = () => {
+                let comboDetails = {
+                    drink: null,
+                    dessert: null,
+                    sides: []
+                };
+                let comboFee = 0;
+
+                if (form.combo !== 'none') {
+                    if (form.selectedDrinkCode) {
+                        comboDetails.drink = getDrinkObj(form.selectedDrinkCode);
+                    }
+                    
+                    if (form.combo === 'A') {
+                        comboFee = 98;
+                        comboDetails.sides.push(form.side1);
+                    } else if (form.combo === 'B') {
+                        comboFee = 158;
+                        if (form.selectedDessertCode) {
+                            comboDetails.dessert = getDessertObj(form.selectedDessertCode);
+                        }
+                    } else if (form.combo === 'C') {
+                        comboFee = 158;
+                        comboDetails.sides.push(form.side1, form.side2);
+                    }
+                }
+
+                cart.value.push({
+                    name: selectedItem.value.name,
+                    basePrice: selectedItem.value.price,
+                    comboType: form.combo,
+                    comboFee: comboFee,
+                    comboDetails: comboDetails,
+                    note: form.note,
+                    totalPrice: currentModalTotal.value
+                });
+
+                closeModal();
+            };
+
+            const removeFromCart = (index) => {
+                cart.value.splice(index, 1);
+            };
+
+            const clearCart = () => {
+                if(confirm('確定要清空購物車嗎？')) {
+                    cart.value = [];
+                }
+            };
+
+            const cartTotal = computed(() => {
+                return cart.value.reduce((sum, item) => sum + item.totalPrice, 0);
+            });
+
+            const getComboName = (type) => {
+                if(type === 'A') return 'A餐 (小品+飲料)';
+                if(type === 'B') return 'B餐 (甜點+飲料)';
+                if(type === 'C') return 'C餐 (小品x2+飲料)';
+                return '';
+            }
+
+            const checkout = () => {
+                if (cart.value.length === 0) {
+                    alert('購物車是空的喔！');
+                    return;
+                }
+                let msg = '=== 訂單確認 ===\n\n';
+                cart.value.forEach((item, i) => {
+                    msg += `${i+1}. ${item.name} $${item.totalPrice}\n`;
+                    if(item.comboType !== 'none') {
+                        msg += `   [${getComboName(item.comboType)}]`;
+                        if(item.comboDetails.sides.length) msg += ` 小品:${item.comboDetails.sides.join('/')}`;
+                        if(item.comboDetails.drink) msg += ` 飲:${item.comboDetails.drink.name}`;
+                        if(item.comboDetails.dessert) msg += ` 甜:${item.comboDetails.dessert.name}`;
+                        msg += '\n';
+                    }
+                    if(item.note) msg += `   備註: ${item.note}\n`;
+                    msg += '\n';
+                });
+                msg += `----------------\n總金額: $${cartTotal.value}`;
+                alert(msg);
+            };
+
+            return {
+                categories,
+                menuItems,
+                sideOptions,
+                activeCategory,
+                scrollToCategory,
+                onScroll,
+                showModal,
+                openItemModal,
+                closeModal,
+                selectedItem,
+                form,
+                currentModalTotal,
+                isFormValid,
+                calcDrinkSurplus,
+                calcDessertSurplus,
+                addToCart,
+                cart,
+                removeFromCart,
+                clearCart,
+                cartTotal,
+                getComboName,
+                checkout,
+                showMobileCart
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
