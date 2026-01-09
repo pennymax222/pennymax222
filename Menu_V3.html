@@ -237,15 +237,23 @@
                         <select v-model="form.selectedDrinkCode" class="w-full border rounded p-2 bg-white mb-2">
                             <option value="" disabled>請選擇</option>
 
-                      
-
-                        <optgroup label="一般飲料/氣泡飲">
-                                <option v-for="d in menuItems.drink" :value="d.code">{{ d.name }}</option>
+                       <optgroup label="飲料/氣泡飲">
+                                <option v-for="d in menuItems.drink" :value="d.code">
+                                    {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
+                                </option>
                             </optgroup>
                             <optgroup label="咖啡">
-                                <option v-for="d in menuItems.coffee" :value="d.code">{{ d.name }}</option>
+                                <option v-for="d in menuItems.coffee" :value="d.code">
+                                    {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
+                                </option>
                             </optgroup>
-                            
+
+                       //<optgroup label="一般飲料/氣泡飲">
+                       //         <option v-for="d in menuItems.drink" :value="d.code">{{ d.name }}</option>
+                       //     </optgroup>
+                       //     <optgroup label="咖啡">
+                       //         <option v-for="d in menuItems.coffee" :value="d.code">{{ d.name }}</option>
+                       //    </optgroup>                             
                        
                         </select>
                         <div v-if="form.selectedDrinkCode" class="flex space-x-4 mt-2 bg-white p-2 rounded border">
