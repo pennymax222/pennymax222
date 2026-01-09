@@ -557,11 +557,16 @@
                 }
 
                 isSubmitting.value = true;
-                
-                // 準備資料格式 (依照 Google Sheet 欄位需求)
+
+
+           
+// 準備資料格式 (依照新的 Google Sheet 欄位需求)
                 const payload = cart.value.map(item => {
+                    // 小點 (只串接 sides 陣列)
                     let sideDishStr = item.comboDetails.sides.join(',');
-                    if(item.comboDetails.dessert) sideDishStr += (sideDishStr ? ',' : '') + item.comboDetails.dessert.name;
+                    
+                    // 甜點 (如果有選 B 套餐且有選甜點，取甜點名稱，否則為空)
+                    let dessertStr = item.comboDetails.dessert ? item.comboDetails.dessert.name : '';
 
                     return {
                         group: customer.group,
@@ -573,9 +578,13 @@
                         comboType: item.comboType === 'none' ? '' : item.comboType,
                         drinkCode: item.comboDetails.drink ? item.comboDetails.drink.code : '',
                         drinkTemp: item.comboDetails.drink ? item.comboDetails.drinkTemp : '',
-                        sideDish: sideDishStr,
+                        sideDish: sideDishStr, // 僅包含小品
+                        dessert: dessertStr,   // 獨立的甜點欄位
                         price: item.totalPrice
                     };
+            
+                
+          
                 });
 
                 // 使用 fetch 送出 (no-cors 模式，因為是跨域)
