@@ -305,48 +305,153 @@
                 selectedDessertCode: ''
             });
 
-            // 簡易菜單數據 (為了節省長度，請保留您原本完整的 menuItems)
-            const categories = [
-                { id: 'appetizer', name: '開胃菜' }, { id: 'main', name: '排餐主菜' }, 
-                { id: 'pasta', name: '義大利麵' }, { id: 'risotto', name: '燉飯/焗烤' }, 
-                { id: 'pizza', name: '拿坡里披薩' }, { id: 'coffee', name: '咖啡' }, 
-                { id: 'drink', name: '飲料' }, { id: 'dessert', name: '甜點' }
+             const categories = [
+                { id: 'appetizer', name: '開胃菜', eng: 'Appetizer' },
+                { id: 'salad', name: '沙拉', eng: 'Salad' },
+                { id: 'main', name: '排餐主菜', eng: 'Main Course' },
+                { id: 'pasta', name: '義大利麵', eng: 'Pasta' },
+                { id: 'risotto', name: '燉飯/焗烤', eng: 'Risotto & Casserole' },
+                { id: 'pizza', name: '拿坡里披薩', eng: 'Pizza Napoletana' },
+                { id: 'coffee', name: '咖啡', eng: 'Coffee' },
+                { id: 'drink', name: '飲料', eng: 'Beverage' },
+                { id: 'alcohol', name: '酒類', eng: 'Beer & Wine' },
+                { id: 'dessert', name: '甜點', eng: 'Dessert' }
             ];
 
-            // 這裡請放入之前完整的 menuItems 資料
+            // 完整菜單資料 (含價格)
             const menuItems = {
                 appetizer: [
-                   {code: "A1", name: "巴薩米可醋炒綜合野菇", price: 148, canCombo: false},
-                   {code: "A6", name: "炸脆薯", price: 98, canCombo: false}
+                    {"code": "A1", "name": "巴薩米可醋炒綜合野菇", "price": 148, "desc": "蘑菇、香菇、杏鮑菇、柳松菇", "canCombo": false},
+                    {"code": "A2", "name": "櫛瓜烘蛋配炸西西里綠橄欖鑲豬肉", "price": 158, "desc": "烘蛋、辣肉末、綠橄欖、義大利豬肉香腸", "canCombo": false},
+                    {"code": "A3", "name": "熱焗烤千層時蔬", "price": 158, "desc": "茄汁肉醬、帕瑪森起司、當季時蔬", "canCombo": false},
+                    {"code": "A4", "name": "西班牙奶油大蒜蝦", "price": 268, "desc": "草蝦、大蒜、紅椒粉、麵包", "canCombo": false},
+                    {"code": "A5", "name": "招牌香草辣雞翅 (6支)", "price": 188, "desc": "二節翅、特製醬料", "canCombo": false},
+                    {"code": "A6", "name": "炸脆薯", "price": 98, "desc": "脆薯", "canCombo": false},
+                    {"code": "A7", "name": "杜蘭小麥酥炸綜合海鮮盤", "price": 248, "desc": "蝦子、小卷、丁香魚", "canCombo": false}
+                ],
+                salad: [
+                    {"code": "D1", "name": "板煎香脆松阪豬佐紅酒醋溫沙拉", "price": 238, "desc": "綜合生菜、松阪豬、松子、巴薩米可醋", "canCombo": true},
+                    {"code": "D2", "name": "DOC水牛奶起司番茄沙拉", "price": 238, "desc": "小牛莫札瑞拉、番茄、芝麻葉青醬", "canCombo": true},
+                    {"code": "D3", "name": "田園蔬菜與溫泉蛋沙拉", "price": 198, "desc": "溫泉蛋、羽衣甘藍、蜂蜜芥末籽醬", "canCombo": true},
+                    {"code": "D4", "name": "火烙香嫩雞胸經典凱薩沙拉", "price": 198, "desc": "低溫雞胸、起司、凱薩醬", "canCombo": true}
                 ],
                 main: [
-                   {code: "E1", name: "人氣香草奶油風味烤半雞", price: 458, canCombo: true},
-                   {code: "E3", name: "10盎司火烤紐約客牛排", price: 688, canCombo: true}
+                    {"code": "E1", "name": "人氣香草奶油風味烤半雞", "price": 458, "desc": "半雞、脆薯、蔬菜、蒜香雞汁", "canCombo": true},
+                    {"code": "E2", "name": "酥脆德國豬腳佐義式醋漬蔬菜", "price": 528, "desc": "豬腳、薯條、蔬菜、蜂蜜芥末", "canCombo": true},
+                    {"code": "E3", "name": "10盎司火烤紐約客牛排", "price": 688, "desc": "牛排、脆薯、炒蔬菜、松露紅酒醬", "canCombo": true}
                 ],
                 pasta: [
-                   {code: "M1", name: "煙花女風味鮮甜小卷義大利麵", price: 298, canCombo: true},
-                   {code: "M7", name: "培根溫泉蛋奶油義大利麵", price: 288, canCombo: true}
+                    {"code": "M1", "name": "煙花女風味鮮甜小卷義大利麵", "price": 298, "desc": "橄欖油清炒", "canCombo": true},
+                    {"code": "M2", "name": "清炒白酒蒜香蛤蠣義大利麵", "price": 268, "desc": "蒜香、白酒", "canCombo": true},
+                    {"code": "M3", "name": "蒜香辣味雞肉蘑菇義大利麵", "price": 268, "desc": "蒜香、辣椒", "canCombo": true},
+                    {"code": "M4", "name": "自製豬肉蘆筍鯷魚筆管麵", "price": 268, "desc": "蘆筍、鯷魚", "canCombo": true},
+                    {"code": "M5", "name": "乾燒鮮蝦佐明太子義大利麵", "price": 278, "desc": "鮮蝦、明太子", "canCombo": true},
+                    {"code": "M6", "name": "秋味奶油菌菇佐厚切牛排義大利麵", "price": 428, "desc": "自營農場白醬", "canCombo": true},
+                    {"code": "M7", "name": "培根溫泉蛋奶油義大利麵", "price": 288, "desc": "Carbonara", "canCombo": true},
+                    {"code": "M8", "name": "費城重起司鮮蝦奶油雞肉扁舌麵", "price": 288, "desc": "微辣起司醬", "canCombo": true},
+                    {"code": "M9", "name": "巴薩醋松阪豬奶油義大利麵", "price": 298, "desc": "巴薩米可醋", "canCombo": true},
+                    {"code": "M10", "name": "和風明太子奶油海鮮義大利麵", "price": 318, "desc": "明太子奶油", "canCombo": true},
+                    {"code": "M11", "name": "卡拉布里亞辣肉末與芝麻葉配筆管麵", "price": 278, "desc": "Nduja Sauce", "canCombo": true},
+                    {"code": "M12", "name": "墨西哥辣椒鮮蝦茄汁義大利麵", "price": 278, "desc": "經典番茄紅醬", "canCombo": true},
+                    {"code": "M13", "name": "西西里茄汁綜合海鮮義大利麵", "price": 308, "desc": "綜合海鮮", "canCombo": true},
+                    {"code": "M14", "name": "義式紅酒慢燉牛肉配筆管麵", "price": 318, "desc": "紅酒燉牛肉", "canCombo": true},
+                    {"code": "M15", "name": "帕瑪茄汁雞肉蘑菇義大利麵", "price": 268, "desc": "茄汁雞肉", "canCombo": true},
+                    {"code": "M16", "name": "藍紋起司炸小卷南瓜筆管麵", "price": 378, "desc": "濃郁老饕香蒜", "canCombo": true},
+                    {"code": "M17", "name": "西西里黑手黨墨魚麵", "price": 288, "desc": "墨魚汁", "canCombo": true},
+                    {"code": "M18", "name": "青醬培根與自製香腸溫泉蛋義大利麵", "price": 298, "desc": "松子青醬", "canCombo": true},
+                    {"code": "M19", "name": "熱那亞青醬綜合海鮮麵", "price": 308, "desc": "綜合海鮮", "canCombo": true},
+                    {"code": "M20", "name": "普羅旺斯香草嫩雞佐蘿勒醬義大利麵", "price": 308, "desc": "香草嫩雞", "canCombo": true},
+                    {"code": "M21", "name": "青醬蛤蠣扁舌麵", "price": 288, "desc": "蛤蠣", "canCombo": true},
+                    {"code": "M22", "name": "牛肝菌奶油蔬菜義大利麵 (蛋奶素)", "price": 268, "desc": "牛肝菌", "canCombo": true},
+                    {"code": "M23", "name": "田園南瓜番茄鮮蔬義大利麵 (全素)", "price": 258, "desc": "南瓜醬", "canCombo": true},
+                    {"code": "M24", "name": "清炒辣味蔬菜義大利麵 (全素)", "price": 258, "desc": "清炒辣味", "canCombo": true}
                 ],
                 risotto: [
-                   {code: "R1", name: "炭烤松阪豬牛肝菌起司燉飯", price: 338, canCombo: true}
+                    {"code": "R1", "name": "炭烤松阪豬牛肝菌起司燉飯", "price": 338, "desc": "松阪豬、牛肝菌", "canCombo": true},
+                    {"code": "R2", "name": "蒜香南瓜鯷魚海鮮燉飯", "price": 378, "desc": "南瓜、鯷魚、海鮮", "canCombo": true},
+                    {"code": "R3", "name": "威尼斯鮮甜小卷墨魚燉飯", "price": 378, "desc": "墨魚汁、小卷", "canCombo": true},
+                    {"code": "R4", "name": "香煎烤雞與黑松露燉飯", "price": 378, "desc": "烤雞、黑松露", "canCombo": true},
+                    {"code": "R5", "name": "帕瑪鱸魚菲力茄汁燉飯", "price": 338, "desc": "鱸魚、茄汁", "canCombo": true},
+                    {"code": "C1", "name": "焗烤培根筆尖麵/燉飯", "price": 288, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true},
+                    {"code": "C2", "name": "焗烤檸檬雞筆尖麵/燉飯", "price": 298, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true},
+                    {"code": "C3", "name": "焗烤海鮮筆尖麵/燉飯", "price": 328, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true},
+                    {"code": "C4", "name": "焗烤綜合鮮蔬筆尖麵/燉飯", "price": 288, "desc": "擇一醬料 (奶油/番茄/青醬)", "canCombo": true}
                 ],
                 pizza: [
-                   {code: "P1", name: "瑪格莉特", price: 248, canCombo: true},
-                   {code: "P4", name: "漁夫風綜合海鮮披薩", price: 298, canCombo: true}
+                    {"code": "P1", "name": "瑪格莉特", "price": 248, "desc": "茄汁、馬自拉起司、羅勒", "canCombo": true},
+                    {"code": "P2", "name": "經典瑪莉 (D.O.C)", "price": 308, "desc": "空運水牛奶起司、小番茄", "canCombo": true},
+                    {"code": "P3", "name": "帕瑪火腿配芝麻葉", "price": 308, "desc": "帕瑪火腿、芝麻葉", "canCombo": true},
+                    {"code": "P4", "name": "漁夫風綜合海鮮披薩", "price": 298, "desc": "蝦子、小卷、蛤蠣、鯷魚", "canCombo": true},
+                    {"code": "P5", "name": "法蘭克福", "price": 278, "desc": "德國香腸片、炸薯條", "canCombo": true},
+                    {"code": "P6", "name": "三種豬肉", "price": 298, "desc": "厚切培根、豬肉香腸、西班牙辣腸", "canCombo": true},
+                    {"code": "P7", "name": "自製義大利香腸與爽口辣椒披薩", "price": 278, "desc": "墨西哥辣椒、半熟蛋", "canCombo": true},
+                    {"code": "P8", "name": "季節鮮蔬披薩", "price": 258, "desc": "櫛瓜、蘑菇、青花菜", "canCombo": true},
+                    {"code": "P9", "name": "青醬野菇與檸檬雞", "price": 288, "desc": "羅勒青醬、檸檬雞", "canCombo": true},
+                    {"code": "P10", "name": "黑松露與綜合野菇", "price": 288, "desc": "黑松露醬、綜合野菇", "canCombo": true},
+                    {"code": "P11", "name": "黑色搖滾", "price": 288, "desc": "鹹豬肉、芝麻葉、黑橄欖", "canCombo": true},
+                    {"code": "P12", "name": "四種起司", "price": 298, "desc": "Ricotta、馬自拉、藍紋、帕瑪森", "canCombo": true},
+                    {"code": "P13", "name": "卡拉布里亞辣肉末", "price": 288, "desc": "Nduja辣肉末", "canCombo": true},
+                    {"code": "P14", "name": "阿瑪爾菲", "price": 288, "desc": "櫛瓜、白蝦仁、烏魚子", "canCombo": true},
+                    {"code": "P15", "name": "白色戀人", "price": 308, "desc": "帕瑪火腿、芝麻葉、紅酒陳醋", "canCombo": true}
                 ],
                 coffee: [
-                   {code: "E1", name: "美式義大利", price: 60, canCombo: false},
-                   {code: "E2", name: "咖啡拿鐵", price: 90, canCombo: false}
+                    {"code": "E1", "name": "美式義大利", "price": 60, "desc": "I/H", "canCombo": false},
+                    {"code": "E2", "name": "咖啡拿鐵", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "E3", "name": "棉花糖巧克力摩卡", "price": 100, "desc": "I/H", "canCombo": false},
+                    {"code": "E4", "name": "西西里檸檬氣泡咖啡", "price": 100, "desc": "I", "canCombo": false},
+                    {"code": "E5", "name": "漂浮冰淇淋咖啡", "price": 100, "desc": "I", "canCombo": false},
+                    {"code": "E6", "name": "榛果棉花糖拿鐵", "price": 110, "desc": "I/H", "canCombo": false},
+                    {"code": "E7", "name": "玫瑰風味拿鐵", "price": 110, "desc": "I/H", "canCombo": false},
+                    {"code": "E8", "name": "沖繩黑糖咖啡拿鐵", "price": 110, "desc": "I/H", "canCombo": false},
+                    {"code": "E9", "name": "治宇抹茶咖啡拿鐵", "price": 120, "desc": "I/H", "canCombo": false},
+                    {"code": "E10", "name": "濃縮咖啡", "price": 60, "desc": "H", "canCombo": false}
                 ],
                 drink: [
-                   {code: "B1", name: "農林仙女紅茶", price: 60, canCombo: false},
-                   {code: "S2", name: "檸檬氣泡飲", price: 60, canCombo: false}
+                    {"code": "S1", "name": "單杯氣泡水", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "S2", "name": "檸檬氣泡飲", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "S3", "name": "蘋果氣泡飲", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "S4", "name": "蜜檸百香果氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S5", "name": "美荔桃水果氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S6", "name": "自製野梅果粒氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S7", "name": "金桔紫蘇梅香氣泡飲", "price": 80, "desc": "", "canCombo": false},
+                    {"code": "S8", "name": "可口可樂", "price": 60, "desc": "", "canCombo": false},
+                    {"code": "B1", "name": "農林仙女紅茶", "price": 60, "desc": "I/H", "canCombo": false},
+                    {"code": "B2", "name": "蜂蜜柚子茶", "price": 60, "desc": "I/H", "canCombo": false},
+                    {"code": "B3", "name": "仙女紅茶拿鐵", "price": 80, "desc": "I/H", "canCombo": false},
+                    {"code": "B4", "name": "手摘薄荷伯爵鮮奶茶", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "B5", "name": "京都抹茶那堤", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "B6", "name": "四季水果茶", "price": 90, "desc": "I/H", "canCombo": false},
+                    {"code": "B7", "name": "漂浮義式冰淇淋紅茶", "price": 100, "desc": "I/H", "canCombo": false},
+                    {"code": "B8", "name": "棉花糖可可鮮牛奶", "price": 100, "desc": "I/H", "canCombo": false},
+                    {"code": "B9", "name": "香濃熱鮮桔子茶", "price": 90, "desc": "H", "canCombo": false}
+                ],
+                alcohol: [
+                    {"code": "Beer1", "name": "Civale Monflowers", "price": 260, "desc": "義大利鮮花釀啤酒", "canCombo": false},
+                    {"code": "Beer2", "name": "Civale Belle Gose", "price": 260, "desc": "義大利美麗之鹽啤酒", "canCombo": false},
+                    {"code": "Beer3", "name": "Civale Punto di fuga", "price": 260, "desc": "義大利蜜霧啤酒", "canCombo": false},
+                    {"code": "Beer4", "name": "Baladin Nazionale", "price": 230, "desc": "原味淡色啤酒", "canCombo": false},
+                    {"code": "Beer5", "name": "Baladin Isaac", "price": 230, "desc": "香草淡色啤酒", "canCombo": false},
+                    {"code": "Beer6", "name": "Baladin Nora", "price": 230, "desc": "東方淡色啤酒", "canCombo": false},
+                    {"code": "Beer7", "name": "Baladin Super", "price": 230, "desc": "果香濃色啤酒", "canCombo": false},
+                    {"code": "Beer8", "name": "Moretti", "price": 120, "desc": "莫雷帝啤酒", "canCombo": false},
+                    {"code": "Wine1", "name": "Pinot Grigio", "price": 900, "desc": "Friuli 白酒", "canCombo": false},
+                    {"code": "Wine2", "name": "Sauvignon", "price": 1080, "desc": "Alto Adige 白酒", "canCombo": false},
+                    {"code": "Wine3", "name": "Lugana", "price": 950, "desc": "Lombardia 白酒", "canCombo": false},
+                    {"code": "Wine4", "name": "Grechetto", "price": 800, "desc": "Umbria 白酒", "canCombo": false},
+                    {"code": "Wine5", "name": "Primitivo", "price": 780, "desc": "Puglia 紅酒", "canCombo": false},
+                    {"code": "Wine6", "name": "Barolo", "price": 2200, "desc": "Piemonte 紅酒", "canCombo": false},
+                    {"code": "Wine7", "name": "Barbera", "price": 880, "desc": "Piemonte 紅酒", "canCombo": false},
+                    {"code": "Wine8", "name": "Pinot Nero", "price": 600, "desc": "Veneto 紅酒", "canCombo": false},
+                    {"code": "Wine9", "name": "Valpolicella", "price": 890, "desc": "Veneto 紅酒", "canCombo": false},
+                    {"code": "Wine10", "name": "Chianti Classico", "price": 890, "desc": "Toscana 紅酒", "canCombo": false}
                 ],
                 dessert: [
-                   {code: "T1", name: "成熟提拉米蘇", price: 158, canCombo: false}
+                    {"code": "T1", "name": "成熟提拉米蘇", "price": 158, "desc": "", "canCombo": false},
+                    {"code": "T2", "name": "布朗尼蛋糕佐香草冰淇淋", "price": 128, "desc": "", "canCombo": false},
+                    {"code": "T3", "name": "手工焦糖烤布蕾", "price": 128, "desc": "", "canCombo": false}
                 ]
             };
-            
+
             // Helper functions
             const getPrice = (cat, code) => {
                 const item = menuItems[cat].find(i => i.code === code);
