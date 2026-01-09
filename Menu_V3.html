@@ -514,6 +514,17 @@
                 return false;
             });
 
+
+            const calcDrinkSurplus = (drink) => {
+                // 飲品折抵 60，回傳需補差價 (不可小於0)
+                return Math.max(0, drink.price - 60);
+            };
+
+            const calcDessertSurplus = (dessert) => {
+                // 甜點折抵 128，回傳需補差價
+                return Math.max(0, dessert.price - 128);
+            };
+
             const addToCart = () => {
                 let comboDetails = { sides: [], drink: null, drinkTemp: '', dessert: null };
                 
