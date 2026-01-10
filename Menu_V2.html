@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>亞米亞米 Yami Yami 線上點餐 (升級版)</title>
+    <title>亞米亞米 Yami Yami 線上點餐 (Google Sheet 版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -12,7 +12,9 @@
         .brand-color { color: #63191F; }
         .bg-brand { background-color: #63191F; }
         .category-active { background-color: #63191F; color: white; border-left: 4px solid #3f0d12; }
-        select { -webkit-appearance: none; } /* Custom select style fix */
+        /* 隱藏捲軸但保持功能 */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
@@ -21,24 +23,17 @@
     <header class="bg-brand text-white p-3 md:p-4 shadow-md flex justify-between items-center z-10 shrink-0">
         <div>
             <h1 class="text-xl md:text-2xl font-bold tracking-wider">Yami Yami 亞米亞米</h1>
-            <p class="text-xs md:text-sm opacity-80">義大利麵 · 拿坡里披薩 · 專門店</p>
-        </div>
-        <div class="text-xs md:text-sm hidden md:block text-right">
-            <p>📍 台南市東區</p>
-            <p>📞 預約專線</p>
+            <p class="text-xs md:text-sm opacity-80">小組聚餐訂單系統V3</p>
         </div>
     </header>
 
     <div class="flex flex-1 overflow-hidden relative">
-        
         <nav class="w-24 md:w-1/6 bg-white border-r border-gray-200 overflow-y-auto flex-shrink-0 pb-20">
             <ul>
-                <li v-for="cat in categories" :key="cat.id" 
-                    @click="scrollToCategory(cat.id)"
+                <li v-for="cat in categories" :key="cat.id" @click="scrollToCategory(cat.id)"
                     :class="{'category-active': activeCategory === cat.id}"
                     class="p-3 md:p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 transition duration-200 text-center md:text-left">
                     <div class="font-bold text-sm md:text-base">{{ cat.name }}</div>
-                    <div class="text-[10px] md:text-xs opacity-60 mt-1">{{ cat.eng }}</div>
                 </li>
             </ul>
         </nav>
@@ -47,33 +42,22 @@
             <div class="max-w-4xl mx-auto pb-32 md:pb-10">
                 <div v-for="cat in categories" :key="cat.id" :id="cat.id" class="mb-10 scroll-mt-4">
                     <h2 class="text-xl md:text-2xl font-bold mb-4 brand-color border-b-2 border-red-800 pb-2 sticky top-0 bg-gray-50 z-10 pt-2">
-                        {{ cat.name }} <span class="ml-2 text-sm font-normal text-gray-500">{{ cat.eng }}</span>
+                        {{ cat.name }}
                     </h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                        <div v-for="item in menuItems[cat.id]" :key="item.code" 
-                             @click="openItemModal(item)"
-                             class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer border border-transparent hover:border-red-800 relative group flex flex-col justify-between h-full">
-                            
-                            <div>
-                                <div class="flex justify-between items-start mb-1">
-                                    <h3 class="font-bold text-gray-800 text-lg leading-tight">
-                                        <span class="text-xs bg-gray-100 text-gray-500 px-1 rounded mr-1 align-middle">{{ item.code }}</span>
-                                        {{ item.name }}
-                                    </h3>
-                                    <span class="font-bold text-red-700 whitespace-nowrap ml-2">${{ item.price }}</span>
-                                </div>
-                                <p class="text-xs text-gray-500 line-clamp-2">{{ item.desc }}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div v-for="item in menuItems[cat.id]" :key="item.code" @click="openItemModal(item)"
+                             class="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer border border-transparent hover:border-red-800 relative">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-bold text-gray-800 text-lg">
+                                    <span class="text-xs bg-gray-100 text-gray-500 px-1 rounded mr-1">{{ item.code }}</span>
+                                    {{ item.name }}
+                                </h3>
+                                <span class="font-bold text-red-700">${{ item.price }}</span>
                             </div>
-                            
-                            <div class="flex justify-between items-end mt-3">
-                                <div v-if="item.canCombo" class="text-[10px] text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200">
-                                    可搭套餐
-                                </div>
-                                <div v-else></div>
-                                <button class="bg-red-50 text-brand-color text-xs px-3 py-1 rounded-full font-bold hover:bg-red-100 transition">
-                                    ＋ 加入
-                                </button>
+                            <p class="text-xs text-gray-500 mt-1">{{ item.desc }}</p>
+                            <div class="mt-2 text-right">
+                                <span v-if="item.canCombo" class="text-[10px] text-yellow-700 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-200 mr-2">可搭套餐</span>
+                                <button class="bg-red-50 text-brand-color text-xs px-3 py-1 rounded-full font-bold">＋ 加入</button>
                             </div>
                         </div>
                     </div>
@@ -81,62 +65,115 @@
             </div>
         </main>
 
-        <aside class="hidden md:flex w-80 lg:w-96 bg-white border-l border-gray-200 flex-col shadow-xl z-20 flex-shrink-0">
-            <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
-                <h2 class="text-lg font-bold brand-color flex items-center">
-                    🛒 點餐明細 <span class="ml-2 bg-red-600 text-white text-xs px-2 rounded-full">{{ cart.length }}</span>
-                </h2>
-                <button @click="clearCart" class="text-xs text-gray-400 hover:text-red-500 underline" v-if="cart.length > 0">清空</button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                <div v-if="cart.length === 0" class="text-center text-gray-400 mt-10">
-                    <p>尚未選擇餐點</p>
-                </div>
-                <div v-else v-for="(item, index) in cart" :key="index" class="bg-white border border-gray-100 rounded p-3 shadow-sm relative">
-                    <button @click="removeFromCart(index)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✕</button>
-                    <div class="font-bold text-gray-800 pr-4">{{ item.name }} <span class="text-sm font-normal text-gray-500">(${{item.basePrice}})</span></div>
-                    
-                    <div v-if="item.comboType !== 'none'" class="mt-2 bg-gray-50 p-2 rounded text-xs text-gray-600 space-y-1">
-                        <div class="font-bold text-red-700">
-                            {{ getComboName(item.comboType) }} (+${{ item.comboFee }})
+        <aside class="hidden md:flex w-96 bg-white border-l border-gray-200 flex-col shadow-xl z-20 flex-shrink-0">
+            <div class="p-4 bg-gray-100 border-b">
+                <h2 class="text-lg font-bold brand-color mb-3">👤 訂購人資訊</h2>
+                <div class="space-y-2 text-sm">
+                    <div>
+                        <label class="block font-bold text-gray-700">小組 <span class="text-red-500">*</span></label>
+                        <select v-model="customer.group" class="w-full p-2 border rounded">
+                            <option value="" disabled>請選擇小組</option>
+                            <option v-for="g in groupOptions" :value="g">{{ g }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700">姓名 <span class="text-red-500">*</span></label>
+                        <input type="text" v-model="customer.name" class="w-full p-2 border rounded" placeholder="您的姓名">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500">同行小孩1</label>
+                            <input type="text" v-model="customer.child1" class="w-full p-1 border rounded text-xs" placeholder="姓名">
                         </div>
-                        <div v-if="item.comboDetails.drink">
-                            🥤 {{ item.comboDetails.drink.name }} 
-                            <span class="text-red-500" v-if="calcDrinkSurplus(item.comboDetails.drink) > 0">
-                                (補 +{{ calcDrinkSurplus(item.comboDetails.drink) }})
-                            </span>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500">同行小孩2</label>
+                            <input type="text" v-model="customer.child2" class="w-full p-1 border rounded text-xs" placeholder="姓名">
                         </div>
-                        <div v-if="item.comboDetails.dessert">
-                            🍰 {{ item.comboDetails.dessert.name }}
-                            <span class="text-red-500" v-if="calcDessertSurplus(item.comboDetails.dessert) > 0">
-                                (補 +{{ calcDessertSurplus(item.comboDetails.dessert) }})
-                            </span>
-                        </div>
-                        <div v-if="item.comboDetails.sides.length > 0">
-                            🍟 {{ item.comboDetails.sides.join('、') }}
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500">同行小孩3</label>
+                            <input type="text" v-model="customer.child3" class="w-full p-1 border rounded text-xs" placeholder="姓名">
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="text-xs text-gray-400 mt-1" v-if="item.note">備註: {{ item.note }}</div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                <div v-if="cart.length === 0" class="text-center text-gray-400 mt-4">尚未選擇餐點</div>
+                <div v-else v-for="(item, index) in cart" :key="index" class="bg-white border rounded p-3 shadow-sm relative text-sm">
+                    <button @click="removeFromCart(index)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500">✕</button>
+                    <div class="font-bold text-gray-800">{{ item.name }}</div>
+                    
+                    <div v-if="item.comboType !== 'none'" class="mt-1 bg-gray-50 p-2 rounded text-xs text-gray-600">
+                        <div class="font-bold text-red-700">[{{ getComboName(item.comboType) }}]</div>
+                        <div v-if="item.comboDetails.drink">
+                            🥤 {{ item.comboDetails.drink.name }} 
+                            <span v-if="item.comboDetails.drinkTemp">({{item.comboDetails.drinkTemp}})</span>
+                        </div>
+                        <div v-if="item.comboDetails.dessert">🍰 {{ item.comboDetails.dessert.name }}</div>
+                        <div v-if="item.comboDetails.sides.length">🍟 {{ item.comboDetails.sides.join('/') }}</div>
+                    </div>
                     <div class="text-right font-bold text-brand-color mt-1">${{ item.totalPrice }}</div>
                 </div>
             </div>
+
             <div class="p-4 bg-white border-t">
                 <div class="flex justify-between text-xl font-bold mb-4">
                     <span>總計</span>
                     <span class="brand-color">${{ cartTotal }}</span>
                 </div>
-                <button @click="checkout" class="w-full bg-brand text-white py-3 rounded-lg font-bold hover:bg-red-900 transition">確認送出訂單</button>
+                <button @click="submitOrder" :disabled="isSubmitting" class="w-full bg-brand text-white py-3 rounded-lg font-bold hover:bg-red-900 transition disabled:opacity-50">
+                    {{ isSubmitting ? '傳送中...' : '確認送出訂單' }}
+                </button>
             </div>
         </aside>
     </div>
 
-    <div v-if="cart.length > 0" class="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.1)] p-3 px-4 flex justify-between items-center z-30 pb-safe">
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white shadow-[0_-4px_10px_rgba(0,0,0,0.1)] p-3 px-4 flex justify-between items-center z-30 pb-safe">
         <div @click="showMobileCart = true" class="cursor-pointer">
             <div class="text-xs text-gray-500">購物車 <span class="bg-red-600 text-white px-1.5 rounded-full text-[10px]">{{ cart.length }}</span></div>
             <div class="text-xl font-bold brand-color">${{ cartTotal }}</div>
         </div>
-        <button @click="checkout" class="bg-brand text-white px-8 py-2.5 rounded-lg font-bold">送出</button>
+        <button @click="showMobileCart = true" class="bg-brand text-white px-8 py-2.5 rounded-lg font-bold">結帳</button>
+    </div>
+
+    <div v-if="showMobileCart" class="fixed inset-0 bg-black bg-opacity-60 z-40 md:hidden flex justify-center items-end" @click.self="showMobileCart = false">
+        <div class="bg-white w-full rounded-t-2xl p-5 max-h-[85vh] overflow-y-auto pb-safe">
+            <h2 class="text-lg font-bold mb-4">👤 訂購人資訊</h2>
+            <div class="space-y-3 mb-6 border-b pb-4">
+                <select v-model="customer.group" class="w-full p-2 border rounded bg-white">
+                    <option value="" disabled>請選擇小組</option>
+                    <option v-for="g in groupOptions" :value="g">{{ g }}</option>
+                </select>
+                <input type="text" v-model="customer.name" class="w-full p-2 border rounded" placeholder="您的姓名">
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="text" v-model="customer.child1" class="w-full p-2 border rounded text-xs" placeholder="小孩1姓名">
+                    <input type="text" v-model="customer.child2" class="w-full p-2 border rounded text-xs" placeholder="小孩2姓名">
+                    <input type="text" v-model="customer.child3" class="w-full p-2 border rounded text-xs" placeholder="小孩3姓名">
+                </div>
+            </div>
+
+            <h2 class="text-lg font-bold mb-2">餐點明細</h2>
+            <div class="space-y-3 mb-6">
+                <div v-for="(item, index) in cart" :key="index" class="flex justify-between items-start border-b pb-2">
+                    <div>
+                        <div class="font-bold">{{ item.name }}</div>
+                        <div v-if="item.comboType !== 'none'" class="text-xs text-gray-500">
+                            {{ getComboName(item.comboType) }}
+                            <span v-if="item.comboDetails.drink"> / {{item.comboDetails.drink.name}}({{item.comboDetails.drinkTemp}})</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold">${{ item.totalPrice }}</div>
+                        <button @click="removeFromCart(index)" class="text-xs text-red-500">移除</button>
+                    </div>
+                </div>
+            </div>
+
+            <button @click="submitOrder" :disabled="isSubmitting" class="w-full bg-brand text-white py-3 rounded-lg font-bold mb-4 disabled:opacity-50">
+                {{ isSubmitting ? '傳送中...' : '確認送出訂單' }}
+            </button>
+            <button @click="showMobileCart = false" class="w-full text-gray-500 py-2">繼續點餐</button>
+        </div>
     </div>
 
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-end md:items-center p-0 md:p-4" @click.self="closeModal">
@@ -149,74 +186,65 @@
             
             <div class="p-4 md:p-6 overflow-y-auto">
                 <div v-if="selectedItem.canCombo" class="mb-6">
-                    <h4 class="font-bold text-gray-800 mb-3">選擇升級套餐</h4>
+                    <h4 class="font-bold text-gray-800 mb-3">升級套餐</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'none'}">
+                        <label class="border rounded-lg p-3 cursor-pointer" :class="{'border-red-800 bg-red-50': form.combo === 'none'}">
                             <input type="radio" v-model="form.combo" value="none" class="hidden">
                             <div class="font-bold text-center">單點</div>
-                            <div class="text-xs text-gray-500 text-center mt-1">${{ selectedItem.price }}</div>
                         </label>
-                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'A'}">
+                        <label class="border rounded-lg p-3 cursor-pointer" :class="{'border-red-800 bg-red-50': form.combo === 'A'}">
                             <input type="radio" v-model="form.combo" value="A" class="hidden">
-                            <div class="font-bold text-center">A餐 <span class="text-red-600 text-sm">+$98</span></div>
-                            <div class="text-[10px] text-gray-500 text-center mt-1">小品x1 + $60飲品</div>
+                            <div class="font-bold text-center">A餐 <span class="text-red-600">+$98</span></div>
+                            <div class="text-[10px] text-center text-gray-500">小品x1 + $60飲品</div>
                         </label>
-                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'B'}">
+                        <label class="border rounded-lg p-3 cursor-pointer" :class="{'border-red-800 bg-red-50': form.combo === 'B'}">
                             <input type="radio" v-model="form.combo" value="B" class="hidden">
-                            <div class="font-bold text-center">B餐 <span class="text-red-600 text-sm">+$158</span></div>
-                            <div class="text-[10px] text-gray-500 text-center mt-1">$128甜點 + $60飲品</div>
+                            <div class="font-bold text-center">B餐 <span class="text-red-600">+$158</span></div>
+                            <div class="text-[10px] text-center text-gray-500">$128甜點 + $60飲品</div>
                         </label>
-                        <label class="border rounded-lg p-3 cursor-pointer hover:bg-gray-50" :class="{'border-red-800 bg-red-50 ring-1 ring-red-800': form.combo === 'C'}">
+                        <label class="border rounded-lg p-3 cursor-pointer" :class="{'border-red-800 bg-red-50': form.combo === 'C'}">
                             <input type="radio" v-model="form.combo" value="C" class="hidden">
-                            <div class="font-bold text-center">C餐 <span class="text-red-600 text-sm">+$158</span></div>
-                            <div class="text-[10px] text-gray-500 text-center mt-1">小品x2 + $60飲品</div>
+                            <div class="font-bold text-center">C餐 <span class="text-red-600">+$158</span></div>
+                            <div class="text-[10px] text-center text-gray-500">小品x2 + $60飲品</div>
                         </label>
                     </div>
                 </div>
 
-                <div v-if="form.combo !== 'none'" class="bg-gray-50 p-4 rounded-lg mb-4 space-y-4 border border-gray-200">
-                    
+                <div v-if="form.combo !== 'none'" class="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
                     <div v-if="form.combo === 'A' || form.combo === 'C'">
-                        <label class="block text-sm font-bold text-gray-700 mb-1">
-                            選擇小品 1 <span class="text-red-500">*</span>
-                        </label>
-                        <select v-model="form.side1" class="w-full border border-gray-300 rounded p-2 bg-white">
-                            <option value="" disabled>請選擇小品</option>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">小品 1</label>
+                        <select v-model="form.side1" class="w-full border rounded p-2 bg-white">
+                            <option value="" disabled>請選擇</option>
                             <option v-for="side in sideOptions" :value="side">{{ side }}</option>
                         </select>
                     </div>
-
                     <div v-if="form.combo === 'C'">
-                        <label class="block text-sm font-bold text-gray-700 mb-1">
-                            選擇小品 2 <span class="text-red-500">*</span>
-                        </label>
-                        <select v-model="form.side2" class="w-full border border-gray-300 rounded p-2 bg-white">
-                            <option value="" disabled>請選擇小品</option>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">小品 2</label>
+                        <select v-model="form.side2" class="w-full border rounded p-2 bg-white">
+                            <option value="" disabled>請選擇</option>
                             <option v-for="side in sideOptions" :value="side">{{ side }}</option>
                         </select>
                     </div>
-
                     <div v-if="form.combo === 'B'">
-                        <label class="block text-sm font-bold text-gray-700 mb-1">
-                            選擇甜點 (折抵$128) <span class="text-red-500">*</span>
-                        </label>
-                        <select v-model="form.selectedDessertCode" class="w-full border border-gray-300 rounded p-2 bg-white">
-                            <option value="" disabled>請選擇甜點</option>
-                            <option v-for="d in menuItems.dessert" :value="d.code">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">甜點</label>
+                        <select v-model="form.selectedDessertCode" class="w-full border rounded p-2 bg-white">
+                            <option value="" disabled>請選擇</option>
+                           <option v-for="d in menuItems.dessert" :value="d.code">
                                 {{ d.name }} 
                                 <span v-if="calcDessertSurplus(d) > 0">(+${{ calcDessertSurplus(d) }})</span>
                                 <span v-else>(不加價)</span>
                             </option>
+
+
+                            
                         </select>
                     </div>
-
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">
-                            選擇飲料 (折抵$60) <span class="text-red-500">*</span>
-                        </label>
-                        <select v-model="form.selectedDrinkCode" class="w-full border border-gray-300 rounded p-2 bg-white">
-                            <option value="" disabled>請選擇飲料</option>
-                            <optgroup label="飲料/氣泡飲">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">飲料</label>
+                        <select v-model="form.selectedDrinkCode" class="w-full border rounded p-2 bg-white mb-2">
+                            <option value="" disabled>請選擇</option>
+
+                       <optgroup label="飲料/氣泡飲">
                                 <option v-for="d in menuItems.drink" :value="d.code">
                                     {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
                                 </option>
@@ -226,35 +254,38 @@
                                     {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
                                 </option>
                             </optgroup>
-                        </select>
-                    </div>
-                </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-bold text-gray-700 mb-2">餐點備註</label>
-                    <input type="text" v-model="form.note" class="w-full border border-gray-300 rounded p-2" placeholder="如：飲料少冰、加辣">
+                                    
+                       
+                        </select>
+                        <div v-if="form.selectedDrinkCode" class="flex space-x-4 mt-2 bg-white p-2 rounded border">
+                            <span class="text-sm font-bold text-gray-600 self-center">溫度:</span>
+                            <label class="flex items-center cursor-pointer"><input type="radio" v-model="form.drinkTemp" value="冰" class="mr-1"> 冰</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" v-model="form.drinkTemp" value="熱" class="mr-1"> 熱</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" v-model="form.drinkTemp" value="去冰" class="mr-1"> 去冰</label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between items-center shrink-0 pb-safe">
-                <div>
-                    <div class="text-xs text-gray-500">總金額</div>
-                    <div class="text-2xl font-bold brand-color">${{ currentModalTotal }}</div>
-                </div>
+            <div class="p-4 border-t bg-gray-50 flex justify-between items-center shrink-0 pb-safe">
+                <div><div class="text-xs text-gray-500">總金額</div><div class="text-2xl font-bold brand-color">${{ currentModalTotal }}</div></div>
                 <div class="flex space-x-3">
                     <button @click="closeModal" class="px-5 py-3 text-gray-600 rounded-lg bg-white border">取消</button>
-                    <button @click="addToCart" :disabled="!isFormValid" 
-                            class="px-8 py-3 bg-brand text-white font-bold rounded-lg shadow disabled:opacity-50 disabled:cursor-not-allowed">
-                        加入訂單
-                    </button>
+                    <button @click="addToCart" :disabled="!isFormValid" class="px-8 py-3 bg-brand text-white font-bold rounded-lg shadow disabled:opacity-50">加入</button>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <script>
+    // **********************************************
+    // 請將下方的 URL 替換成您自己的 Google Apps Script 網址
+    // **********************************************
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyeGBYD517tWiENUM9bR5FePH5GKKOXqupyp7FKNcu3hNHEbSwjsA1prxO9jcorZ92L/exec'; 
+    
+
     const { createApp, ref, reactive, computed } = Vue;
 
     createApp({
@@ -262,23 +293,35 @@
             const activeCategory = ref('appetizer');
             const showModal = ref(false);
             const showMobileCart = ref(false);
+            const isSubmitting = ref(false);
             const selectedItem = ref({});
             const cart = ref([]);
-            
-            // 小品選項
+
+            const customer = reactive({
+                group: '',
+                name: '',
+                child1: '',
+                child2: '',
+                child3: ''
+            });
+
+            const groupOptions = [
+                '國中小組', '大專宇祥', '大專云謙', '佳綺小組', '佩瑩小組', 
+                '佳妙小組', '常恩小組', '偉恩社青', '偉恩夫婦'
+            ];
+
             const sideOptions = ['脆薯', '焗烤肉醬馬鈴薯', '沙拉', '濃湯麵包'];
 
-            // 表單資料
             const form = reactive({
-                combo: 'none', // none, A, B, C
+                combo: 'none',
                 side1: '',
                 side2: '',
                 selectedDrinkCode: '',
-                selectedDessertCode: '',
-                note: ''
+                drinkTemp: '冰', // 預設
+                selectedDessertCode: ''
             });
 
-            const categories = [
+             const categories = [
                 { id: 'appetizer', name: '開胃菜', eng: 'Appetizer' },
                 { id: 'salad', name: '沙拉', eng: 'Salad' },
                 { id: 'main', name: '排餐主菜', eng: 'Main Course' },
@@ -425,15 +468,62 @@
                 ]
             };
 
-            // Helpers
+            // Helper functions
+            const getPrice = (cat, code) => {
+                const item = menuItems[cat].find(i => i.code === code);
+                return item ? item.price : 0;
+            };
+
             const getDrinkObj = (code) => {
-                const allDrinks = [...menuItems.drink, ...menuItems.coffee];
-                return allDrinks.find(d => d.code === code);
+                return [...menuItems.drink, ...menuItems.coffee].find(d => d.code === code);
             };
 
             const getDessertObj = (code) => {
                 return menuItems.dessert.find(d => d.code === code);
             };
+
+            const scrollToCategory = (id) => {
+                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+                activeCategory.value = id;
+            };
+
+            const onScroll = (e) => { /* Scroll logic */ };
+
+            const openItemModal = (item) => {
+                selectedItem.value = item;
+                form.combo = 'none';
+                form.side1 = ''; form.side2 = '';
+                form.selectedDrinkCode = ''; form.drinkTemp = '冰';
+                form.selectedDessertCode = '';
+                showModal.value = true;
+            };
+
+            const closeModal = () => showModal.value = false;
+
+            const currentModalTotal = computed(() => {
+                let total = selectedItem.value.price || 0;
+                if (form.combo === 'A') {
+                    total += 98;
+                    if(form.selectedDrinkCode) total += Math.max(0, getDrinkObj(form.selectedDrinkCode).price - 60);
+                } else if (form.combo === 'B') {
+                    total += 158;
+                    if(form.selectedDrinkCode) total += Math.max(0, getDrinkObj(form.selectedDrinkCode).price - 60);
+                    if(form.selectedDessertCode) total += Math.max(0, getDessertObj(form.selectedDessertCode).price - 128);
+                } else if (form.combo === 'C') {
+                    total += 158;
+                    if(form.selectedDrinkCode) total += Math.max(0, getDrinkObj(form.selectedDrinkCode).price - 60);
+                }
+                return total;
+            });
+
+            const isFormValid = computed(() => {
+                if (form.combo === 'none') return true;
+                if (form.combo === 'A') return form.side1 && form.selectedDrinkCode;
+                if (form.combo === 'B') return form.selectedDessertCode && form.selectedDrinkCode;
+                if (form.combo === 'C') return form.side1 && form.side2 && form.selectedDrinkCode;
+                return false;
+            });
+
 
             const calcDrinkSurplus = (drink) => {
                 // 飲品折抵 60，回傳需補差價 (不可小於0)
@@ -445,188 +535,106 @@
                 return Math.max(0, dessert.price - 128);
             };
 
-            const scrollToCategory = (id) => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                    activeCategory.value = id;
-                }
-            };
-
-            const onScroll = (e) => {
-                const container = e.target;
-                categories.forEach(cat => {
-                    const el = document.getElementById(cat.id);
-                    if (el && container.scrollTop >= el.offsetTop - 150) {
-                        activeCategory.value = cat.id;
-                    }
-                });
-            };
-
-            const openItemModal = (item) => {
-                selectedItem.value = item;
-                // 重置表單
-                form.combo = 'none';
-                form.side1 = '';
-                form.side2 = '';
-                form.selectedDrinkCode = '';
-                form.selectedDessertCode = '';
-                form.note = '';
-                showModal.value = true;
-            };
-
-            const closeModal = () => {
-                showModal.value = false;
-            };
-
-            // 計算總價
-            const currentModalTotal = computed(() => {
-                let total = selectedItem.value.price || 0;
-
-                if (form.combo === 'A') {
-                    total += 98;
-                    if (form.selectedDrinkCode) {
-                        total += calcDrinkSurplus(getDrinkObj(form.selectedDrinkCode));
-                    }
-                } else if (form.combo === 'B') {
-                    total += 158;
-                    if (form.selectedDrinkCode) {
-                        total += calcDrinkSurplus(getDrinkObj(form.selectedDrinkCode));
-                    }
-                    if (form.selectedDessertCode) {
-                        total += calcDessertSurplus(getDessertObj(form.selectedDessertCode));
-                    }
-                } else if (form.combo === 'C') {
-                    total += 158;
-                    if (form.selectedDrinkCode) {
-                        total += calcDrinkSurplus(getDrinkObj(form.selectedDrinkCode));
-                    }
-                }
-                return total;
-            });
-
-            // 檢查是否選完必要選項
-            const isFormValid = computed(() => {
-                if (form.combo === 'none') return true;
-                if (form.combo === 'A') {
-                    return form.side1 && form.selectedDrinkCode;
-                }
-                if (form.combo === 'B') {
-                    return form.selectedDessertCode && form.selectedDrinkCode;
-                }
-                if (form.combo === 'C') {
-                    return form.side1 && form.side2 && form.selectedDrinkCode;
-                }
-                return false;
-            });
-
             const addToCart = () => {
-                let comboDetails = {
-                    drink: null,
-                    dessert: null,
-                    sides: []
-                };
-                let comboFee = 0;
-
+                let comboDetails = { sides: [], drink: null, drinkTemp: '', dessert: null };
+                
                 if (form.combo !== 'none') {
                     if (form.selectedDrinkCode) {
                         comboDetails.drink = getDrinkObj(form.selectedDrinkCode);
+                        comboDetails.drinkTemp = form.drinkTemp;
                     }
-                    
-                    if (form.combo === 'A') {
-                        comboFee = 98;
-                        comboDetails.sides.push(form.side1);
-                    } else if (form.combo === 'B') {
-                        comboFee = 158;
-                        if (form.selectedDessertCode) {
-                            comboDetails.dessert = getDessertObj(form.selectedDessertCode);
-                        }
-                    } else if (form.combo === 'C') {
-                        comboFee = 158;
-                        comboDetails.sides.push(form.side1, form.side2);
-                    }
+                    if (form.combo === 'A') comboDetails.sides.push(form.side1);
+                    if (form.combo === 'B' && form.selectedDessertCode) comboDetails.dessert = getDessertObj(form.selectedDessertCode);
+                    if (form.combo === 'C') comboDetails.sides.push(form.side1, form.side2);
                 }
 
                 cart.value.push({
+                    mainCode: selectedItem.value.code,
                     name: selectedItem.value.name,
-                    basePrice: selectedItem.value.price,
                     comboType: form.combo,
-                    comboFee: comboFee,
                     comboDetails: comboDetails,
-                    note: form.note,
                     totalPrice: currentModalTotal.value
                 });
-
                 closeModal();
             };
 
-            const removeFromCart = (index) => {
-                cart.value.splice(index, 1);
-            };
+            const removeFromCart = (index) => cart.value.splice(index, 1);
+            const cartTotal = computed(() => cart.value.reduce((sum, item) => sum + item.totalPrice, 0));
+            const getComboName = (t) => t === 'A' ? 'A餐' : t === 'B' ? 'B餐' : t === 'C' ? 'C餐' : '';
 
-            const clearCart = () => {
-                if(confirm('確定要清空購物車嗎？')) {
-                    cart.value = [];
-                }
-            };
-
-            const cartTotal = computed(() => {
-                return cart.value.reduce((sum, item) => sum + item.totalPrice, 0);
-            });
-
-            const getComboName = (type) => {
-                if(type === 'A') return 'A餐 (小品+飲料)';
-                if(type === 'B') return 'B餐 (甜點+飲料)';
-                if(type === 'C') return 'C餐 (小品x2+飲料)';
-                return '';
-            }
-
-            const checkout = () => {
-                if (cart.value.length === 0) {
-                    alert('購物車是空的喔！');
+            const submitOrder = () => {
+                if (!customer.group || !customer.name) {
+                    alert('請填寫小組與姓名！');
                     return;
                 }
-                let msg = '=== 訂單確認 ===\n\n';
-                cart.value.forEach((item, i) => {
-                    msg += `${i+1}. ${item.name} $${item.totalPrice}\n`;
-                    if(item.comboType !== 'none') {
-                        msg += `   [${getComboName(item.comboType)}]`;
-                        if(item.comboDetails.sides.length) msg += ` 小品:${item.comboDetails.sides.join('/')}`;
-                        if(item.comboDetails.drink) msg += ` 飲:${item.comboDetails.drink.name}`;
-                        if(item.comboDetails.dessert) msg += ` 甜:${item.comboDetails.dessert.name}`;
-                        msg += '\n';
-                    }
-                    if(item.note) msg += `   備註: ${item.note}\n`;
-                    msg += '\n';
+                if (cart.value.length === 0) {
+                    alert('購物車是空的！');
+                    return;
+                }
+
+                if(GOOGLE_SCRIPT_URL.includes('您的_GOOGLE')) {
+                    alert('請先在程式碼中設定 Google Script URL');
+                    return;
+                }
+
+                isSubmitting.value = true;
+
+
+           
+// 準備資料格式 (依照新的 Google Sheet 欄位需求)
+                const payload = cart.value.map(item => {
+                    // 小點 (只串接 sides 陣列)
+                    let sideDishStr = item.comboDetails.sides.join(',');
+                    
+                    // 甜點 (如果有選 B 套餐且有選甜點，取甜點名稱，否則為空)
+                    let dessertStr = item.comboDetails.dessert ? item.comboDetails.dessert.name : '';
+
+                    return {
+                        group: customer.group,
+                        name: customer.name,
+                        child1: customer.child1,
+                        child2: customer.child2,
+                        child3: customer.child3,
+                        mainCode: item.mainCode,
+                        mainName: item.name,
+                        comboType: item.comboType === 'none' ? '' : item.comboType,
+                        drinkCode: item.comboDetails.drink ? item.comboDetails.drink.code : '',
+                        drinkName: item.comboDetails.drink ? item.comboDetails.drink.name : '',
+                        drinkTemp: item.comboDetails.drink ? item.comboDetails.drinkTemp : '',
+                        sideDish: sideDishStr, // 僅包含小品
+                        dessert: dessertStr,   // 獨立的甜點欄位
+                        price: item.totalPrice
+                    };
+            
+                
+          
                 });
-                msg += `----------------\n總金額: $${cartTotal.value}`;
-                alert(msg);
+
+                // 使用 fetch 送出 (no-cors 模式，因為是跨域)
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    alert('訂單已送出！謝謝');
+                    cart.value = [];
+                    isSubmitting.value = false;
+                    showMobileCart.value = false;
+                }).catch(err => {
+                    alert('送出失敗，請稍後再試');
+                    console.error(err);
+                    isSubmitting.value = false;
+                });
             };
 
             return {
-                categories,
-                menuItems,
-                sideOptions,
-                activeCategory,
-                scrollToCategory,
-                onScroll,
-                showModal,
-                openItemModal,
-                closeModal,
-                selectedItem,
-                form,
-                currentModalTotal,
-                isFormValid,
-                calcDrinkSurplus,
+                categories, menuItems, customer, groupOptions, sideOptions,
+                activeCategory, scrollToCategory, onScroll, showModal, showMobileCart,
+                selectedItem, form, isFormValid, currentModalTotal, calcDrinkSurplus,
                 calcDessertSurplus,
-                addToCart,
-                cart,
-                removeFromCart,
-                clearCart,
-                cartTotal,
-                getComboName,
-                checkout,
-                showMobileCart
+                addToCart, removeFromCart, cart, cartTotal, getComboName,
+                openItemModal, closeModal, submitOrder, isSubmitting
             };
         }
     }).mount('#app');
