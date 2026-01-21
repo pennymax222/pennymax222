@@ -230,7 +230,7 @@
                         <select v-model="form.selectedDessertCode" class="w-full border rounded p-2 bg-white">
                             <option value="" disabled>請選擇</option>
                            <option v-for="d in menuItems.dessert" :value="d.code">
-                                {{ d.name }} 
+                               {{ d.code }} - {{ d.name }} 
                                 <span v-if="calcDessertSurplus(d) > 0">(+${{ calcDessertSurplus(d) }})</span>
                                 <span v-else>(不加價)</span>
                             </option>
@@ -641,5 +641,6 @@
 </script>
 </body>
 </html>
+
 
 
