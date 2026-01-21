@@ -246,12 +246,12 @@
 
                        <optgroup label="飲料/氣泡飲">
                                 <option v-for="d in menuItems.drink" :value="d.code">
-                                    {{ d.code }} + {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
+                                    {{ d.code }} - {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
                                 </option>
                             </optgroup>
                             <optgroup label="咖啡">
                                 <option v-for="d in menuItems.coffee" :value="d.code">
-                                    {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
+                                    {{ d.code }} - {{ d.name }} <span v-if="calcDrinkSurplus(d) > 0">(+${{ calcDrinkSurplus(d) }})</span><span v-else>(不加價)</span>
                                 </option>
                             </optgroup>
 
@@ -641,4 +641,5 @@
 </script>
 </body>
 </html>
+
 
